@@ -111,6 +111,7 @@ export default function App() {
       setClassCheckbox(false);
     }
   };
+  
   return (
     <div className="App">
       <div style={{ display: "flex" }}>
