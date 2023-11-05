@@ -1,154 +1,116 @@
 import "./styles.css";
 import React from "react";
 import { useCallback } from "react";
+import { mockCheckboxData, Strings } from "./mockData/constants";
+import { Section } from "./components/Section";
+import Checkbox from "./components/Checkbox";
 
 export default function App() {
-  const [classCheckbox, setClassCheckbox] = React.useState(false);
-  const [checkboxes, setCheckboxes] = React.useState([
-    {
-      name: "Section 1",
-      isParentChecked: false,
-      id: 1,
-      children: [
-        { id: 1, isChecked: false },
-        { id: 1, isChecked: false },
-        { id: 1, isChecked: false },
-      ],
-    },
-    {
-      name: "Section 2",
-      isParentChecked: false,
-      id: 2,
-      children: [
-        { id: 2, isChecked: false },
-        { id: 2, isChecked: false },
-        { id: 2, isChecked: false },
-      ],
-    },
-    {
-      name: "Section 3",
-      isParentChecked: false,
-      id: 3,
-      children: [
-        { id: 3, isChecked: false },
-        { id: 3, isChecked: false },
-        { id: 3, isChecked: false },
-      ],
-    },
-  ]);
-  const handleChange = (id) => {
-    const copy = [...checkboxes];
-    const index = checkboxes.findIndex((ele) => ele.id === id);
-    const output = checkboxes.find((ele) => ele.id === id);
-    output.isParentChecked = !output.isParentChecked;
-    output.children = output.children.map((ele) => {
+  const [isclassCheckboxChecked, setIsClassCheckboxChecked] =
+    React.useState(false);
+  const [checkboxesData, setCheckboxesData] = React.useState(mockCheckboxData);
+
+  //* The Parent Section Handle Change Function
+  const handleParentChange = (parentIndex) => {
+    const copiedCheckboxData = [...checkboxesData];
+
+    copiedCheckboxData[parentIndex].isParentChecked =
+      !copiedCheckboxData[parentIndex].isParentChecked;
+    copiedCheckboxData[parentIndex].children = copiedCheckboxData[
+      parentIndex
+    ].children.map((ele) => {
       return {
         ...ele,
         isChecked: !ele.isChecked,
       };
     });
-    copy[index] = output;
-   
 
-    setCheckboxes([...copy]);
+    setCheckboxesData([...copiedCheckboxData]);
     handleClassChange();
   };
 
-  const handleIndividualChange = (e, id, ind) => {
-    const copy = [...checkboxes];
-    const index = checkboxes.findIndex((ele) => ele.id === id);
-    const output = copy.find((ele) => ele.id === id);
+  //* The Individual Checkbox Handle Change Function
+  const handleIndividualCheckboxChange = (parentIndex, childIndex) => {
+    const copiedCheckboxData = [...checkboxesData];
 
-    output.children = output.children.map((child, index) => {
-      if (index === ind) {
-        return {
-          ...child,
-          isChecked: !child.isChecked,
-        };
-      } else {
-        return child;
-      }
-    });
+    copiedCheckboxData[parentIndex].children[childIndex].isChecked =
+      !copiedCheckboxData[parentIndex].children[childIndex].isChecked;
 
-    if (output.children.every((nn) => nn.isChecked)) {
-      output.isParentChecked = true;
+    if (
+      copiedCheckboxData[parentIndex].children.every(
+        (childData) => childData.isChecked
+      )
+    ) {
+      copiedCheckboxData[parentIndex].isParentChecked = true;
     } else {
-      output.isParentChecked = false;
+      copiedCheckboxData[parentIndex].isParentChecked = false;
     }
-    copy[index] = output;
 
-    setCheckboxes([...copy]);
+    setCheckboxesData([...copiedCheckboxData]);
     handleClassChange();
   };
   const handleClass = () => {
-    setClassCheckbox((prevData) => !prevData);
-    handleAllCheckbox();
+    setIsClassCheckboxChecked((prevData) => !prevData);
+    handleAllCheckbox(!isclassCheckboxChecked);
   };
 
-  const handleAllCheckbox = useCallback(() => {
-    console.log("copy", copy);
-    let copy = [...checkboxes];
-    copy = copy.map((elem) => {
-      const child = elem.children.map((ele) => ({
-        ...ele,
-        isChecked: !ele.isChecked,
-      }));
+  //* All Checkbox handle Change Function
 
-      return {
-        ...elem,
-        isParentChecked: !elem.isParentChecked,
-        children: child,
-      };
-    });
+  const handleAllCheckbox = useCallback(
+    (classStatus) => {
+      let copiedCheckboxData = [...checkboxesData];
+      copiedCheckboxData = copiedCheckboxData.map((elem) => {
+        const child = elem.children.map((ele) => ({
+          ...ele,
+          isChecked: classStatus,
+        }));
 
-    setCheckboxes([...copy]);
-  }, [classCheckbox]);
+        return {
+          ...elem,
+          isParentChecked: classStatus,
+          children: child,
+        };
+      });
 
+      setCheckboxesData([...copiedCheckboxData]);
+    },
+    [isclassCheckboxChecked]
+  );
+
+  //* Function to check of all the section and subsection are checked
   const handleClassChange = () => {
-    if (checkboxes.every((ele) => ele.isParentChecked)) {
-      setClassCheckbox(true);
+    if (checkboxesData.every((ele) => ele.isParentChecked)) {
+      setIsClassCheckboxChecked(true);
     } else {
-      setClassCheckbox(false);
+      setIsClassCheckboxChecked(false);
     }
   };
   return (
     <div className="App">
       <div style={{ display: "flex" }}>
-        <h3>Class 9</h3>
+        <h3>{Strings["Class-9"]}</h3>
         <input
           type="checkbox"
-          checked={classCheckbox}
-          onChange={() => handleClass()}
+          checked={isclassCheckboxChecked}
+          onChange={handleClass}
         />
       </div>
 
-      {checkboxes.map((data, ind) => {
+      {checkboxesData.map((parentData, parentIndex) => {
         return (
-          <div>
+          <div key={parentIndex}>
             <div style={{ display: "flex" }}>
-              <input
-                type="checkbox"
-                checked={data.isParentChecked}
-                onChange={() => handleChange(data.id)}
+              <Section
+                parentData={parentData}
+                handleParentChange={() => handleParentChange(parentIndex)}
               />
-              <h2>{data.name}</h2>
             </div>
 
-            <div>
-              {data.children.map((ele, ind) => {
-                return (
-                  <div>
-                    <input
-                      type="checkbox"
-                      checked={ele.isChecked}
-                      onChange={(event) =>
-                        handleIndividualChange(event, data.id, ind)
-                      }
-                    />
-                  </div>
-                );
-              })}
-            </div>
+            <Checkbox
+              parentData={parentData}
+              handleIndividualCheckboxChange={handleIndividualCheckboxChange}
+              parentIndex={parentIndex}
+            />
           </div>
         );
       })}
